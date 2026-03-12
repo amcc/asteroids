@@ -1,25 +1,23 @@
-let shipDefault = {
-  x: 0,
-  y: 0,
-  rotation: 0,
-  speedX: 0,
-  speedY: 0,
-};
+let bullets = [];
 
 const ships = [
   {
+    index: 0,
     x: 0,
     y: 0,
     rotation: 0,
     speedX: 0,
     speedY: 0,
+    type: "ship",
   },
   {
+    index: 1,
     x: 0,
     y: 0,
     rotation: Math.PI,
     speedX: 0,
     speedY: 0,
+    type: "ship",
   },
 ];
 
@@ -28,13 +26,15 @@ const speedInc = 0.1;
 const maxSpeed = 40;
 const shipWidth = 40;
 const shipHeight = 35;
+const bulletWidth = 10;
+const bulletSpeed = 6;
 const xOffset = -shipWidth / 2.4;
 const yOffset = -shipHeight / 2;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   ships.forEach((ship, i) => {
-    ship.x = width/3 + i*width/3;
+    ship.x = width / 3 + (i * width) / 3;
     ship.y = height / 2;
   });
 }
@@ -48,6 +48,10 @@ function draw() {
     drawShip(ship, i);
     updateLocation(ship, i);
   });
+  bullets.forEach((bullet, i) => {
+    drawbullet(bullet);
+    updateLocation(bullet, i);
+  });
   checkKey();
 }
 
@@ -56,13 +60,16 @@ function checkKey() {
     updateSpeed(ships[1], speedInc);
     ships[1].thrustRotation = ships[1].rotation;
   }
+  if (keyIsDown(DOWN_ARROW)) {
+    addBullet(ships[1]);
+  }
   if (keyIsDown(LEFT_ARROW)) {
     updateRotation(ships[1], -rotationInc);
   }
   if (keyIsDown(RIGHT_ARROW)) {
     updateRotation(ships[1], rotationInc);
   }
-  
+
   if (keyIsDown(87)) {
     updateSpeed(ships[0], speedInc);
     ships[0].thrustRotation = ships[0].rotation;
@@ -73,13 +80,16 @@ function checkKey() {
   if (keyIsDown(68)) {
     updateRotation(ships[0], rotationInc);
   }
+  if (keyIsDown(83)) {
+    addBullet(ships[0]);
+  }
 }
 
-function updateLocation(ship, i) {
-  ship.x += ship.speedX;
-  ship.y += ship.speedY;
+function updateLocation(object, i) {
+  object.x += object.speedX;
+  object.y += object.speedY;
 
-  checkOffCanvas(ship);
+  checkOffCanvas(object);
 }
 
 function updateSpeed(ship, amount) {
@@ -93,13 +103,31 @@ function updateRotation(ship, amount) {
   ship.rotation += amount;
 }
 
+function drawbullet(bullet) {
+  push();
+  translate(bullet.x, bullet.y);
+  rotate(bullet.rotation);
+  line(0, 0, bulletWidth, 0);
+  pop();
+}
+
+function addBullet(ship) {
+  let angle = ship.rotation;
+  let xInc = cos(angle) * bulletSpeed;
+  let yInc = sin(angle) * bulletSpeed;
+  bullets.push({
+    index: ship.index,
+    x: ship.x,
+    y: ship.y,
+    rotation: ship.rotation,
+    speedX: ship.speedX + xInc,
+    speedY: ship.speedY + yInc,
+    loops: 0,
+    type: "bullet",
+  });
+}
+
 function drawShip(ship, i) {
-  // if(i == 0) {
-  //   fill(255,0,0)
-  // } else if (i === 1) {
-  //   fill(0,255,0)
-  // }
-  
   push();
   translate(ship.x, ship.y);
   rotate(ship.rotation);
@@ -112,18 +140,30 @@ function drawShip(ship, i) {
   pop();
 }
 
-function checkOffCanvas(ship) {
-  if (ship.x > width + shipWidth) {
-    ship.x = -shipWidth;
+function checkOffCanvas(object) {
+  if (object.x > width + shipWidth) {
+    object.x = -shipWidth;
+    checkLoops(object);
   }
-  if (ship.x < -shipWidth) {
-    ship.x = width + shipWidth;
+  if (object.x < -shipWidth) {
+    object.x = width + shipWidth;
+    checkLoops(object);
   }
-  if (ship.y > height + shipHeight) {
-    ship.y = -shipHeight;
+  if (object.y > height + shipHeight) {
+    object.y = -shipHeight;
+    checkLoops(object);
   }
-  if (ship.y < -shipHeight) {
-    ship.y = height + shipHeight;
+  if (object.y < -shipHeight) {
+    object.y = height + shipHeight;
+    checkLoops(object);
+  }
+}
+
+function checkLoops(object) {
+  if (object.type !== "bullet") return;
+  object.loops++;
+  if (object.loops > 3) {
+    bullets.splice(bullets.indexOf(object), 1);
   }
 }
 
