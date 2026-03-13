@@ -8,6 +8,8 @@ const ships = [
     rotation: 0,
     speedX: 0,
     speedY: 0,
+    hit: false,
+    hitTimer: 0,
     type: "ship",
   },
   {
@@ -17,6 +19,8 @@ const ships = [
     rotation: Math.PI,
     speedX: 0,
     speedY: 0,
+    hit: false,
+    hitTimer: 0,
     type: "ship",
   },
 ];
@@ -26,7 +30,7 @@ const speedInc = 0.1;
 const maxSpeed = 40;
 const shipWidth = 40;
 const shipHeight = 35;
-const bulletWidth = 10;
+const bulletWidth = 40;
 const bulletSpeed = 6;
 const xOffset = -shipWidth / 2.4;
 const yOffset = -shipHeight / 2;
@@ -47,6 +51,15 @@ function draw() {
   ships.forEach((ship, i) => {
     drawShip(ship, i);
     updateLocation(ship, i);
+    // Check for hits
+    bullets.forEach((bullet) => {
+      if (hitDetection(bullet, ship)) {
+        console.log("Hit!");
+        bullets.splice(bullets.indexOf(bullet), 1);
+        ship.hit = true;
+        ship.hitTimer = 100; // Set hit timer for 60 frames
+      }
+    });
   });
   bullets.forEach((bullet, i) => {
     drawbullet(bullet);
@@ -104,6 +117,7 @@ function updateRotation(ship, amount) {
 }
 
 function drawbullet(bullet) {
+  stroke(255);
   push();
   translate(bullet.x, bullet.y);
   rotate(bullet.rotation);
@@ -128,6 +142,11 @@ function addBullet(ship) {
 }
 
 function drawShip(ship, i) {
+  if (ship.hit) {
+    stroke(random(255), 0, 0);
+  } else {
+    stroke(255);
+  }
   push();
   translate(ship.x, ship.y);
   rotate(ship.rotation);
@@ -138,6 +157,22 @@ function drawShip(ship, i) {
   vertex(xOffset + shipWidth / 5, yOffset + shipHeight / 2);
   endShape(CLOSE);
   pop();
+
+  if (ship.hit) {
+    ship.hitTimer--;
+    if (ship.hitTimer <= 0) {
+      ship.hit = false;
+    }
+  }
+}
+
+function hitDetection(bullet, ship) {
+  if (bullet.index === ship.index) return false;
+  let distance = dist(bullet.x, bullet.y, ship.x, ship.y);
+  if (distance < shipWidth / 2) {
+    return true;
+  }
+  return false;
 }
 
 function checkOffCanvas(object) {
@@ -162,7 +197,7 @@ function checkOffCanvas(object) {
 function checkLoops(object) {
   if (object.type !== "bullet") return;
   object.loops++;
-  if (object.loops > 3) {
+  if (object.loops > 2) {
     bullets.splice(bullets.indexOf(object), 1);
   }
 }
