@@ -37,6 +37,10 @@ const yOffset = -shipHeight / 2;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  init();
+}
+
+function init() {
   ships.forEach((ship, i) => {
     ship.x = width / 3 + (i * width) / 3;
     ship.y = height / 2;
@@ -216,4 +220,9 @@ function checkSpeed(amount, speed) {
     speedInc = 0;
   }
   return speedInc;
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  init();
 }
