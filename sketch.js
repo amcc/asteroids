@@ -37,6 +37,7 @@ const yOffset = -shipHeight / 2;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
   init();
 }
 
@@ -66,7 +67,7 @@ function draw() {
     });
   });
   bullets.forEach((bullet, i) => {
-    drawbullet(bullet);
+    d(bullet);
     updateLocation(bullet, i);
   });
   checkKey();
